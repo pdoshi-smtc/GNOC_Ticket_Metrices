@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GNOC Incident Dashboard</title>
+    <title>GNOC SA Ticket Metrics</title>
+    <link rel="icon" type="image/x-icon" href="https://www.semtech.com/assets/img/favicon.ico">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <style>
@@ -130,7 +131,7 @@
         .card:nth-child(4) .card-value { color: var(--accent-red); }
 
         /* ── PIE CHARTS ── */
-        .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; gap: 24px;   padding: 0 20px;   }
+        .charts-row { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 24px; gap: 24px;   padding: 0 20px;   }
         .chart-box {
             background: var(--bg-card); border: 1px solid var(--border);
             border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow);
@@ -147,6 +148,16 @@
         .chart-canvas-wrap canvas {
             width: 100% !important;
             height: 100% !important;
+        }
+        .small-charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;   /* 🔥 2 charts per row */
+    gap: 20px;
+    max-width: 1200px;   /* wider */
+    margin: 0 auto;
+}
+        .small-charts-row .chart-canvas-wrap {
+            height: 260px;   /* 🔥 smaller graphs */
         }
         .filter-bar {
             background: var(--bg-card); border: 1px solid var(--border);
@@ -213,7 +224,7 @@
            WEEKLY SUMMARY — pixel-match to image
            ══════════════════════════════════════ */
         .weekly-container {
-            max-width: 900px;   /* 🔥 makes table compact */
+            max-width: 500px;   /* 🔥 makes table compact */
             margin: 0 auto;
         }
 
@@ -225,15 +236,20 @@
         }
 
         .weekly-table td {
-            padding: 6px 12px;
+            padding: 4px 6px;
             border: 1px solid #2d2d2d;
             text-align: center;
+            font-size: 14px;
         }
 
         .weekly-table td:first-child {
             text-align: left;
             font-weight: 600;
-            width: 220px;
+            width: 100px;
+        }
+
+        .weekly-table td:not(:first-child) {
+            width: 60px;   /* 🔥 fixed small width for W3–W7 */
         }
 
         /* HEADER */
@@ -244,23 +260,23 @@
         }
 
         /* GREEN ROWS */
-        .row-green { background: #2ca58d; color: #fff; }
+        .row-green { background: #2ca58d; color: #fff; font-weight: 900; }
 
         /* BLUE ROWS */
-        .row-blue { background: #1f6fb2; color: #fff; }
+        .row-blue { background: #1f6fb2; color: #fff; font-weight: 900; }
 
         /* BLACK ROWS */
-        .row-black { background: #000; color: #fff; font-weight: 700; }
+        .row-black { background: #000; color: #fff; font-weight: 900; }
 
         /* ORANGE HEADER */
-        .row-orange-header { background: #ff9800; color: #fff; font-weight: 700; }
+        .row-orange-header { background: #ff9800; color: #fff; font-weight: 900; }
 
         /* ORANGE ROWS */
-        .row-orange { background: #ffa726; color: #000; }
+        .row-orange { background: #ffa726; color: #ffffff;font-weight: 900; }
 
         /* CYAN SECTION */
-        .row-cyan-header { background: #3aa6a6; color: #fff; font-weight: 700; }
-        .row-cyan { background: #5bc0be; color: #000; }
+        .row-cyan-header { background: #3aa6a6; color: #fff; font-weight: 900; }
+        .row-cyan { background: #5bc0be; color: #ffffff; font-weight: 900;}
 
         /* GAP */
         .row-gap td {
@@ -305,8 +321,7 @@
     <!-- HEADER -->
     <div class="header">
         <div class="header-left">
-            <div class="header-logo">G</div>
-            <h1>GNOC Incident <span>Dashboard</span></h1>
+            <h1>GNOC SA Ticket Metrics</h1>
         </div>
     </div>
 
@@ -334,6 +349,8 @@
     <!-- MAIN -->
     <div class="container">
 
+
+
         <!-- SUMMARY CARDS -->
         <div class="cards-row">
             <div class="card">
@@ -354,31 +371,7 @@
             </div>
         </div>
 
-        <!-- PIE CHARTS -->
-        <div class="charts-row">
-            <div class="chart-box">
-                <div class="chart-title">Investigation Type</div>
-                <div class="chart-canvas-wrap"><canvas id="chartInvestigation"></canvas></div>
-            </div>
-            <div class="chart-box">
-                <div class="chart-title">Detection Type</div>
-                <div class="chart-canvas-wrap"><canvas id="chartDetection"></canvas></div>
-            </div>
-        </div>
-
-        <!-- FILTERS -->
-        <div class="filter-bar" id="filterBar"></div>
-
-        <!-- INCIDENT TABLE -->
-        <div class="table-wrap">
-            <div class="table-title">Incident Details</div>
-            <div class="table-scroll">
-                <table>
-                    <thead><tr id="tableHead"></tr></thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
-            </div>
-        </div>
+        
 
         <!-- WEEKLY SUMMARY TABLE -->
         <div class="table-wrap" style="border:none; box-shadow:none; background:transparent;">
@@ -396,23 +389,57 @@
             <div class="table-scroll" id="weeklyTableContainer"></div>
         </div>
 
-    </div>
 
-    <div class="charts-row">
-    <div class="chart-box">
-        <div class="chart-title">GNOC Service Assurance MTTR (hrs)</div>
-        <div class="chart-canvas-wrap"><canvas id="chartMTTR"></canvas></div>
-    </div>
+        <div class="small-charts-row">
+            <div class="chart-box">
+                <div class="chart-title">GNOC Service Assurance by Incident Severity</div>
+                <div class="chart-canvas-wrap"><canvas id="chartSeverity"></canvas></div>
+            </div>
 
-    <div class="chart-box">
-        <div class="chart-title">GNOC Service Assurance Tickets</div>
-        <div class="chart-canvas-wrap"><canvas id="chartTickets"></canvas></div>
-    </div>
+            <div class="chart-box">
+                <div class="chart-title">GNOC Service Assurance Tickets</div>
+                <div class="chart-canvas-wrap"><canvas id="chartTickets"></canvas></div>
+            </div>
 
-    <div class="chart-box">
-        <div class="chart-title">GNOC Service Assurance by Incident Severity</div>
-        <div class="chart-canvas-wrap"><canvas id="chartSeverity"></canvas></div>
+            
+            <div class="chart-box">
+                <div class="chart-title">GNOC Service Assurance MTTR (hrs)</div>
+                <div class="chart-canvas-wrap"><canvas id="chartMTTR"></canvas></div>
+            </div>
+        </div>
+        <br>
+        
+        <!-- FILTERS -->
+        <div class="filter-bar" id="filterBar"></div>
+
+        <!-- INCIDENT TABLE -->
+        <div class="table-wrap">
+            <div class="table-title">Incident Details</div>
+            <div class="table-scroll">
+                <table>
+                    <thead><tr id="tableHead"></tr></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <!-- PIE CHARTS -->
+        <div class="charts-row">
+            <div class="chart-box">
+                <div class="chart-title">Investigation Type</div>
+                <div class="chart-canvas-wrap"><canvas id="chartInvestigation"></canvas></div>
+            </div>
+            <div class="chart-box">
+                <div class="chart-title">Detection Type</div>
+                <div class="chart-canvas-wrap"><canvas id="chartDetection"></canvas></div>
+            </div>
+        </div>
+    
+
+
     </div>
+    
 </div>
 
 <script>
@@ -540,7 +567,7 @@
                 responsive: true,
                 maintainAspectRatio: false,
 
-                // 🚀 kill all animation + hover
+            
                 animation: false,
                 events: [],
 
@@ -678,6 +705,7 @@
             "Summary",
             "Time to Resolution (Hours)",
             "Priority",
+            "Status",
             "Investigation Type",
             "Source / Detection",
             "Reporter"
@@ -864,7 +892,7 @@ function renderWeeklyCharts() {
                 display: true,
                 anchor: 'end',
                 align: 'top',
-                offset: 8,
+                offset: 2,
                 color: '#111827',
                 font: {
                     size: 11,
@@ -896,7 +924,7 @@ function renderWeeklyCharts() {
                 x: {
                     offset: true,
                     grid: { display: false },
-                    ticks: { padding: 10 }
+                    ticks: { padding: 5 }
                 },
                 y: {
                     beginAtZero: true,
@@ -927,7 +955,7 @@ function renderWeeklyCharts() {
                 x: {
                     offset: true,
                     grid: { display: false },
-                    ticks: { padding: 10 }
+                    ticks: { padding: 5 }
                 },
                 y: {
                     beginAtZero: true,
