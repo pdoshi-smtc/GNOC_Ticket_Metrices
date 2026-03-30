@@ -130,23 +130,24 @@
         .card:nth-child(4) .card-value { color: var(--accent-red); }
 
         /* ── PIE CHARTS ── */
-        .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+        .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; gap: 24px;   padding: 0 20px;   }
         .chart-box {
             background: var(--bg-card); border: 1px solid var(--border);
             border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow);
+                        
         }
         .chart-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; text-align: center; }
         /* .chart-canvas-wrap canvas { width: 90% !important; height: 90% !important; padding-left: 10%;}    ── FILTERS ── */
 
-.chart-canvas-wrap {
-    width: 100%;
-    height: 400px;   /* 🔥 smaller (was 500px) */
-}
+        .chart-canvas-wrap {
+            width: 100%;
+            height: 400px; 
+        }
 
-.chart-canvas-wrap canvas {
-    width: 100% !important;
-    height: 100% !important;
-}
+        .chart-canvas-wrap canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
         .filter-bar {
             background: var(--bg-card); border: 1px solid var(--border);
             border-radius: var(--radius); padding: 14px 18px; margin-bottom: 14px;
@@ -212,62 +213,62 @@
            WEEKLY SUMMARY — pixel-match to image
            ══════════════════════════════════════ */
         .weekly-container {
-    max-width: 900px;   /* 🔥 makes table compact */
-    margin: 0 auto;
-}
+            max-width: 900px;   /* 🔥 makes table compact */
+            margin: 0 auto;
+        }
 
-.weekly-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-    font-weight: 500;
-}
+        .weekly-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            font-weight: 500;
+        }
 
-.weekly-table td {
-    padding: 6px 12px;
-    border: 1px solid #2d2d2d;
-    text-align: center;
-}
+        .weekly-table td {
+            padding: 6px 12px;
+            border: 1px solid #2d2d2d;
+            text-align: center;
+        }
 
-.weekly-table td:first-child {
-    text-align: left;
-    font-weight: 600;
-    width: 220px;
-}
+        .weekly-table td:first-child {
+            text-align: left;
+            font-weight: 600;
+            width: 220px;
+        }
 
-/* HEADER */
-.weekly-header {
-    background: #6b7280;
-    color: #fff;
-    font-weight: 700;
-}
+        /* HEADER */
+        .weekly-header {
+            background: #6b7280;
+            color: #fff;
+            font-weight: 700;
+        }
 
-/* GREEN ROWS */
-.row-green { background: #2ca58d; color: #fff; }
+        /* GREEN ROWS */
+        .row-green { background: #2ca58d; color: #fff; }
 
-/* BLUE ROWS */
-.row-blue { background: #1f6fb2; color: #fff; }
+        /* BLUE ROWS */
+        .row-blue { background: #1f6fb2; color: #fff; }
 
-/* BLACK ROWS */
-.row-black { background: #000; color: #fff; font-weight: 700; }
+        /* BLACK ROWS */
+        .row-black { background: #000; color: #fff; font-weight: 700; }
 
-/* ORANGE HEADER */
-.row-orange-header { background: #ff9800; color: #fff; font-weight: 700; }
+        /* ORANGE HEADER */
+        .row-orange-header { background: #ff9800; color: #fff; font-weight: 700; }
 
-/* ORANGE ROWS */
-.row-orange { background: #ffa726; color: #000; }
+        /* ORANGE ROWS */
+        .row-orange { background: #ffa726; color: #000; }
 
-/* CYAN SECTION */
-.row-cyan-header { background: #3aa6a6; color: #fff; font-weight: 700; }
-.row-cyan { background: #5bc0be; color: #000; }
+        /* CYAN SECTION */
+        .row-cyan-header { background: #3aa6a6; color: #fff; font-weight: 700; }
+        .row-cyan { background: #5bc0be; color: #000; }
 
-/* GAP */
-.row-gap td {
-    height: 18px;
-    background: #e5e7eb;
-    border: none;
-}
-        /* header colors used inline below for flexibility */
+        /* GAP */
+        .row-gap td {
+            height: 18px;
+            background: #e5e7eb;
+            border: none;
+        }
+                /* header colors used inline below for flexibility */
 
         /* ── LOADING ── */
         .loading-overlay {
@@ -381,7 +382,17 @@
 
         <!-- WEEKLY SUMMARY TABLE -->
         <div class="table-wrap" style="border:none; box-shadow:none; background:transparent;">
-            <div class="table-title" style="border-bottom:none; padding-left:0;">Weekly Summary (Historical)</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+    
+                <div class="table-title" style="border-bottom:none; padding-left:0; margin:0;">
+                    Weekly Summary (Historical)
+                </div>
+
+                <button class="btn-clear" onclick="deleteLastWeek()">
+                    Delete Last Week Data
+                </button>
+
+            </div>
             <div class="table-scroll" id="weeklyTableContainer"></div>
         </div>
 
@@ -424,6 +435,27 @@
             dashboardData = await res.json();
             render();
         } catch (e) { console.error(e); }
+    }
+
+    async function deleteLastWeek() {
+        if (!confirm("Delete last week's data?")) return;
+
+        try {
+            const res = await fetch('/api/delete-last-week', {
+                method: 'POST'
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                alert("Last week deleted successfully!");
+                await loadDashboard();   // refresh UI
+            } else {
+                alert("Error: " + data.error);
+            }
+        } catch (e) {
+            alert("Network error");
+        }
     }
 
     async function fetchData() {
@@ -544,8 +576,14 @@
                         clamp: true,
 
                         formatter: function(value, ctx) {
+                            const data = ctx.chart.data.datasets[0].data;
+                            const total = data.reduce((a, b) => a + b, 0);
+
+                            const percentage = total ? ((value / total) * 100).toFixed(1) : 0;
+
                             const label = ctx.chart.data.labels[ctx.dataIndex];
-                            return label + '\n' + value; // ✅ full text
+
+                            return label + ' ' + percentage + '%';   // 🔥 ONE LINE
                         },
 
                         textAlign: 'center'
@@ -556,7 +594,7 @@
             plugins: [
                 ChartDataLabels,
 
-                // 🔥 CUSTOM CONNECTOR LINES (leader lines)
+  
                 {
                     id: 'leaderLines',
                     afterDraw(chart) {
@@ -634,7 +672,16 @@
             document.getElementById('tableBody').innerHTML = '<tr><td colspan="99"><div class="empty-state"><div class="icon">📋</div><p>No data. Fetch from Jira above.</p></div></td></tr>';
             return;
         }
-        const cols = Object.keys(data[0]);
+        // const cols = Object.keys(data[0]);
+        const cols = [
+            "Issue key",
+            "Summary",
+            "Time to Resolution (Hours)",
+            "Priority",
+            "Investigation Type",
+            "Source / Detection",
+            "Reporter"
+        ];
         let filtered = data.filter(row => {
             for (const [col, val] of Object.entries(activeFilters)) {
                 if (row[col] !== val) return false;
@@ -658,6 +705,11 @@
         document.getElementById('tableBody').innerHTML = filtered.map(row => {
             return '<tr>' + cols.map(c => {
                 let val = row[c] != null ? row[c] : '';
+
+                if (c.toLowerCase().includes('time to resolution')) {
+                    const num = Number(val);
+                    val = isNaN(num) ? '' : Math.floor(num);
+                }
                 let cls = '';
                 if (c === 'Summary') cls = ' class="summary-cell"';
                 if (c === 'SLA Status' && val) {
@@ -699,7 +751,12 @@ function renderWeeklyTable() {
 
     function val(i, key) {
         const x = latest[i][key];
-        return (x !== undefined && x !== null && x !== '') ? x : 'NA';
+
+        if (x === undefined || x === null || x === '') return 'NA';
+
+        const num = Number(x);
+
+        return isNaN(num) ? x : Math.floor(num);
     }
 
     function row(label, key, cls) {
@@ -763,7 +820,12 @@ function renderWeeklyCharts() {
     const latest = data.slice(-5);
 
     const weeks = latest.map(d => d["Week"]);
-    const mttr = latest.map(d => d["MTTR (hours)"] || 0);
+
+    const mttr = latest.map(d => {
+        const val = Number(d["MTTR (hours)"]);
+        return isNaN(val) ? 0 : Math.floor(val);
+    });
+
     const tickets = latest.map(d => d["Tickets Created"] || 0);
 
     const p1 = latest.map(d => d["P1 Tickets"] || 0);
@@ -776,6 +838,43 @@ function renderWeeklyCharts() {
     if (ticketChart) ticketChart.destroy();
     if (severityChart) severityChart.destroy();
 
+    // 🔹 BASE OPTIONS
+    const baseOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+
+        layout: {
+            padding: {
+                top: 40,
+                bottom: 10,
+                left: 10,
+                right: 10
+            }
+        },
+
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { font: { size: 11 } }
+            },
+            tooltip: { enabled: false },
+
+            datalabels: {
+                display: true,
+                anchor: 'end',
+                align: 'top',
+                offset: 8,
+                color: '#111827',
+                font: {
+                    size: 11,
+                    weight: '600'
+                },
+                formatter: (v) => v > 0 ? v : ''
+            }
+        }
+    };
+
     // 🔹 MTTR LINE CHART
     mttrChart = new Chart(document.getElementById('chartMTTR'), {
         type: 'line',
@@ -786,10 +885,27 @@ function renderWeeklyCharts() {
                 data: mttr,
                 borderColor: '#1f5e75',
                 tension: 0,
-                fill: false
+                fill: false,
+                pointRadius: 3,
+                clip: false
             }]
         },
-        options: commonOptions()
+        options: {
+            ...baseOptions,
+            scales: {
+                x: {
+                    offset: true,
+                    grid: { display: false },
+                    ticks: { padding: 10 }
+                },
+                y: {
+                    beginAtZero: true,
+                    grace: '10%',
+                    grid: { color: '#e5e7eb' }
+                }
+            }
+        },
+        plugins: [ChartDataLabels]
     });
 
     // 🔹 TICKETS BAR CHART
@@ -801,13 +917,29 @@ function renderWeeklyCharts() {
                 label: 'Tickets',
                 data: tickets,
                 backgroundColor: '#1f5e75',
-                barPercentage: 0.4
+                barPercentage: 0.4,
+                categoryPercentage: 0.5
             }]
         },
-        options: commonOptions()
+        options: {
+            ...baseOptions,
+            scales: {
+                x: {
+                    offset: true,
+                    grid: { display: false },
+                    ticks: { padding: 10 }
+                },
+                y: {
+                    beginAtZero: true,
+                    grace: '10%',
+                    grid: { color: '#e5e7eb' }
+                }
+            }
+        },
+        plugins: [ChartDataLabels]
     });
 
-    // 🔹 SEVERITY STACKED BAR
+    // 🔹 SEVERITY GROUPED BAR
     severityChart = new Chart(document.getElementById('chartSeverity'), {
         type: 'bar',
         data: {
@@ -820,45 +952,30 @@ function renderWeeklyCharts() {
             ]
         },
         options: {
-            ...commonOptions(),
-            
-        }
+            ...baseOptions,
+            scales: {
+                x: {
+                    offset: true,
+                    grid: { display: false },
+                    ticks: { padding: 10 }
+                },
+                y: {
+                    beginAtZero: true,
+                    grace: '10%',
+                    grid: { color: '#e5e7eb' }
+                }
+            },
+            datasets: {
+                bar: {
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.7
+                }
+            }
+        },
+        plugins: [ChartDataLabels]
     });
 }
 
-function commonOptions() {
-    return {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: false,
-
-        plugins: {
-            legend: {
-                position: 'bottom',
-                // labels: {
-                //     boxWidth: 10,
-                //     font: { size: 11 }  // 🔥 smaller legend
-                // }
-            },
-
-            tooltip: {
-                enabled: false   // 🔥 REMOVE TOOLTIP
-            }
-        },
-
-        scales: {
-            x: {
-                grid: { display: false },
-                ticks: { font: { size: 11 } }
-            },
-            y: {
-                grid: { color: '#e5e7eb' },
-                beginAtZero: true,
-                ticks: { font: { size: 11 } }
-            }
-        }
-    };
-}
 </script>
 
 </body>

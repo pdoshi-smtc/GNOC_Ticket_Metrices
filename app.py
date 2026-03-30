@@ -214,6 +214,26 @@ def api_dashboard():
         "past_table": past_table
     })
 
+@app.route('/api/delete-last-week', methods=['POST'])
+def delete_last_week():
+    try:
+        if not os.path.exists(PAST_DATA_FILE):
+            return jsonify({"success": False, "error": "File not found"})
+
+        df = pd.read_csv(PAST_DATA_FILE)
+
+        if df.empty:
+            return jsonify({"success": False, "error": "No data to delete"})
+
+        # 🔥 remove last row (latest week)
+        df = df.iloc[:-1]
+
+        df.to_csv(PAST_DATA_FILE, index=False)
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
