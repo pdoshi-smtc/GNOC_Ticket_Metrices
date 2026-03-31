@@ -408,6 +408,12 @@
             </div>
         </div>
         <br>
+
+        <div class="table-wrap">
+            <div class="table-title">Top MTTR Contributors (Editable)</div>
+            <textarea id="mttrBox" 
+                style="width:100%; height:140px; padding:12px; border:none; outline:none; resize:vertical;"></textarea>
+        </div>
         
         <!-- FILTERS -->
         <div class="filter-bar" id="filterBar"></div>
@@ -435,7 +441,15 @@
                 <div class="chart-canvas-wrap"><canvas id="chartDetection"></canvas></div>
             </div>
         </div>
-    
+
+        <!-- TEXT AREAS -->
+        <div class="table-wrap">
+            <div class="table-title">Ticket Summary (Editable)</div>
+            <textarea id="ticketSummaryBox" 
+                style="width:100%; height:180px; padding:12px; border:none; outline:none; resize:vertical;"></textarea>
+        </div>         
+
+        
 
 
     </div>
@@ -521,6 +535,7 @@
         renderTable();
         renderWeeklyTable();
         renderWeeklyCharts();
+        renderTextAreas();
     }
 
     function renderCards() {
@@ -536,6 +551,16 @@
         if (chartInst2) chartInst2.destroy();
         chartInst1 = makePie('chartInvestigation', dashboardData.investigation_pie);
         chartInst2 = makePie('chartDetection', dashboardData.detection_pie);
+    }
+
+    function renderTextAreas() {
+        if (!dashboardData) return;
+
+        document.getElementById('ticketSummaryBox').value =
+            dashboardData.ticket_summary || "";
+
+        document.getElementById('mttrBox').value =
+            dashboardData.top_mttr || "";
     }
 
     function makePie(canvasId, data) {

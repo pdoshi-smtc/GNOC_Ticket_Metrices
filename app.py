@@ -3,6 +3,7 @@ from fetch_jira import fetch_jira_data
 import pandas as pd
 import os
 import json
+import math
 
 app = Flask(__name__)
 
@@ -160,6 +161,71 @@ def update_past_data(df, week_label):
     past_df.to_csv(PAST_DATA_FILE, index=False)
     return past_df
 
+def generate_ticket_summary(df):
+    """Generate investigation summary text"""
+    if df.empty:
+        return ""
+    lines = []
+    grouped = df.groupby("Investigation Type")
+
+    for inv_type, group in grouped:
+        count = len(group)
+        # count CSI / NSI
+        csi = group["Summary"].str.contains("CSI", case=False, na=False).sum()
+        nsi = group["Summary"].str.contains("NSI", case=False, na=False).sum()
+
+        # 🔥 improved formatting
+        if csi > 0 and nsi > 0:
+            scope_text = f"{csi} CSI and {nsi} NSI"
+        elif csi > 0:
+            scope_text = f"{csi} CSI"
+        elif nsi > 0:
+            scope_text = f"{nsi} NSI"
+        else:
+            scope_text = "No scope"
+
+        issue_word = "Issue" if count == 1 else "Issues"
+
+        line = f"{count} {inv_type} {issue_word}, {scope_text} in scope."
+        lines.append(line)
+
+    summary_text = "\n".join(lines)
+
+    # % of Health Check from Detection Type
+    if "Source / Detection" in df.columns:
+        total = len(df)
+        hc_count = df["Source / Detection"].str.contains("Health Check", case=False, na=False).sum()
+        hc_percent = round((hc_count / total) * 100, 1) if total > 0 else 0
+    else:
+        hc_percent = 0
+
+    final_lines = (
+        "All tickets have been successfully resolved.\n"
+        f"GNOC’s proactive monitoring activities resulted in the creation of {hc_percent}% JSM tickets during the HC period."
+    )
+
+    return summary_text + "\n" + final_lines
+
+def generate_top_mttr(df):
+    """Generate top 3 MTTR tickets (Hours, floored, clean format)"""
+
+    if df.empty or "Time to Resolution (Minutes)" not in df.columns:
+        return ""
+
+    # convert to hours first
+    df["Time to Resolution (Hours)"] = df["Time to Resolution (Minutes)"] / 60
+
+    df_sorted = df.sort_values(by="Time to Resolution (Hours)", ascending=False).head(3)
+
+    lines = []
+    for _, row in df_sorted.iterrows():
+        hours = math.floor(row["Time to Resolution (Hours)"])
+
+        line = f'The MTTR is primarily attributable to: {row["Issue key"]} - {row["Summary"]} - {hours} hours'
+        lines.append(line)
+
+    return "\n".join(lines)
+
 
 @app.route("/")
 def index():
@@ -202,6 +268,8 @@ def api_dashboard():
     detection_pie = compute_pie_data(df, "Source / Detection")
     table_data = build_table_data(df)
     filters = get_filter_options(df)
+    ticket_summary = generate_ticket_summary(df)
+    top_mttr = generate_top_mttr(df)
 
     past_table = past_df.fillna("NA").to_dict(orient="records") if not past_df.empty else []
 
@@ -211,7 +279,9 @@ def api_dashboard():
         "detection_pie": detection_pie,
         "table": table_data,
         "filters": filters,
-        "past_table": past_table
+        "past_table": past_table,
+        "ticket_summary": ticket_summary,
+        "top_mttr": top_mttr
     })
 
 @app.route('/api/delete-last-week', methods=['POST'])
