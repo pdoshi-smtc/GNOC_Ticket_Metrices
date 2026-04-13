@@ -219,7 +219,8 @@ def generate_top_mttr(df):
 
     lines = []
     for _, row in df_sorted.iterrows():
-        hours = math.floor(row["Time to Resolution (Hours)"])
+        # hours = math.floor(row["Time to Resolution (Hours)"])
+        hours = round(row["Time to Resolution (Hours)"])
 
         line = f'The MTTR is primarily attributable to: {row["Issue key"]} - {row["Summary"]} - {hours} hours'
         lines.append(line)
@@ -263,6 +264,29 @@ def api_dashboard():
     df = load_data()
     past_df = load_past_data()
 
+    if not past_df.empty:
+        # Convert safely
+        for col in [
+            "P1 Tickets", "P2 Tickets", "P3 Tickets", "P4 Tickets",
+            "P1 - MTTR", "P2 - MTTR", "P3 - MTTR", "P4 - MTTR"
+        ]:
+            if col in past_df.columns:
+                past_df[col] = pd.to_numeric(past_df[col], errors='coerce').fillna(0)
+
+        past_df["Overall MTTR (hours)"] = pd.to_numeric(
+        past_df["Overall MTTR (hours)"], errors='coerce'
+        ).fillna(0).round(0)
+
+        # 🔥 Ticket Calculations
+        past_df["Ticket Critical (P1/P2)"] = past_df["P1 Tickets"] + past_df["P2 Tickets"]
+        past_df["Ticket Major (P3)"] = past_df["P3 Tickets"]
+        past_df["Minor Ticket (P4)"] = past_df["P4 Tickets"]
+
+        # 🔥 MTTR Calculations
+        past_df["MTTR Critical (hrs)"] = ((past_df["P1 - MTTR"] + past_df["P2 - MTTR"]) / 2).round(0)
+        past_df["MTTR Major (hrs)"] = past_df["P3 - MTTR"].round(0)
+        past_df["MTTR Minor (hrs)"] = past_df["P4 - MTTR"].round(0)
+
     summary = compute_summary(df)
     investigation_pie = compute_pie_data(df, "Investigation Type")
     detection_pie = compute_pie_data(df, "Source / Detection")
@@ -271,7 +295,7 @@ def api_dashboard():
     ticket_summary = generate_ticket_summary(df)
     top_mttr = generate_top_mttr(df)
 
-    past_table = past_df.fillna("NA").to_dict(orient="records") if not past_df.empty else []
+    past_table = past_df.fillna("").to_dict(orient="records") if not past_df.empty else []
 
     return jsonify({
         "summary": summary,
@@ -333,6 +357,8 @@ def save_weekly():
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
-        
+
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

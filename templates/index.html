@@ -291,6 +291,10 @@
 .trend-same {
     color: #22c55e;   /* green like your image */
 }
+.row-highlight {
+    background: #1e3a5f;
+    font-weight: 800;
+}
 
 
         /* GAP */
@@ -776,7 +780,7 @@
 
                 if (c.toLowerCase().includes('time to resolution')) {
                     const num = Number(val);
-                    val = isNaN(num) ? '' : Math.floor(num);
+                    val = isNaN(num) ? '' : Math.round(num);
                 }
                 let cls = '';
                 if (c === 'Summary') cls = ' class="summary-cell"';
@@ -814,9 +818,9 @@ function getTrendArrow(prev, curr) {
         return rightArrow("#22c55e");
     }
 
-    if (c > p) return upArrow("#22c55e");
+    if (c > p) return upArrow("#ef4444");
     if (c < p) return downArrow("#22c55e");
-    return rightArrow("#22c55e");
+    return rightArrow("#facc15");
 }
 
 // 🔥 SVG ARROWS (THICK + CLEAN)
@@ -870,27 +874,35 @@ function renderWeeklyTable() {
         "Tickets Created",
         "Tickets Resolved",
         "Major (P1/P2) Incidents",
-        "Ticket Critical",
-        "Ticket Major",
+
+        "Ticket Critical (P1/P2)",
+        "Ticket Major (P3)",
+        "Minor Ticket (P4)",
+
+        "MTTR Critical (hrs)",
+        "MTTR Major (hrs)",
+        "MTTR Minor (hrs)",
+
         "Overall MTTR (hours)",
-        "MTTR Critical",
-        "MTTR Major",
-        "Backlog Ticket Volume",
-        "Backlog Aging (HOURS)"
     ];
 
+
     const labelMap = {
-        "Tickets Created": "Ticket Opened",
-        "Tickets Resolved": "Ticket Resolved",
-        "Major (P1/P2) Incidents": "Total Incident",
-        "Ticket Critical": "Ticket Critical",
-        "Ticket Major": "Ticket Major",
+        "Tickets Created": "JSM Tickets Created",
+        "Tickets Resolved": "JSM Tickets Resolved",
+        "Major (P1/P2) Incidents": "Outage Incident Tickets",
+
+        "Ticket Critical (P1/P2)": "Critical Tickets (P1/P2)",
+        "Ticket Major (P3)": "Major Tickets (P3)",
+        "Minor Ticket (P4)": "Minor Tickets (P4)",
+
         "Overall MTTR (hours)": "MTTR (hrs) Overall",
-        "MTTR Critical": "MTTR Critical (hrs)",
-        "MTTR Major": "MTTR Major (hrs)",
-        "Backlog Ticket Volume": "Backlog (volume)",
-        "Backlog Aging (HOURS)": "Backlog Aging (hrs)"
+
+        "MTTR Critical (hrs)": "MTTR Critical (P1/P2) (hrs)",
+        "MTTR Major (hrs)": "MTTR Major (P3) (hrs) ",
+        "MTTR Minor (hrs)": "MTTR Minor (P4) (hrs) "
     };
+    
 
     let html = `<div class="weekly-container"><table class="weekly-table">`;
 
@@ -909,7 +921,9 @@ function renderWeeklyTable() {
 
     // ROWS
     columns.forEach((col, idx) => {
-        const rowClass = idx % 2 === 0 ? 'row-main' : 'row-alt';
+        const rowClass = col === "Overall MTTR (hours)" 
+            ? "row-highlight"
+            : (idx % 2 === 0 ? 'row-main' : 'row-alt');
 
         html += `<tr class="${rowClass}"><td>${labelMap[col]}</td>`;
 
@@ -968,7 +982,7 @@ function renderWeeklyCharts() {
 
     const mttr = latest.map(d => {
         const val = Number(d["MTTR (hours)"]);
-        return isNaN(val) ? 0 : Math.floor(val);
+        return isNaN(val) ? 0 : Math.round(val);
     });
 
     const tickets = latest.map(d => d["Tickets Created"] || 0);
@@ -1090,10 +1104,10 @@ function renderWeeklyCharts() {
         data: {
             labels: weeks,
             datasets: [
-                { label: 'P1', data: p1, backgroundColor: '#1f5e75' },
-                { label: 'P2', data: p2, backgroundColor: '#f97316' },
-                { label: 'P3', data: p3, backgroundColor: '#15803d' },
-                { label: 'P4', data: p4, backgroundColor: '#06b6d4' }
+                { label: 'P1', data: p1, backgroundColor: '#ef4444' },   
+                { label: 'P2', data: p2, backgroundColor: '#f97316' },   
+                { label: 'P3', data: p3, backgroundColor: '#facc15' },   
+                { label: 'P4', data: p4, backgroundColor: '#16a34a' }    
             ]
         },
         options: {
