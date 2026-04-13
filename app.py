@@ -305,5 +305,34 @@ def delete_last_week():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
+@app.route('/api/save-weekly', methods=['POST'])
+def save_weekly():
+    try:
+        updates = request.json
+
+        if not os.path.exists(PAST_DATA_FILE):
+            return jsonify({"success": False, "error": "File not found"})
+
+        df = pd.read_csv(PAST_DATA_FILE)
+
+        latest_indices = df.index[-len(updates):]
+
+        for i, idx in enumerate(latest_indices):
+            for col, val in updates[str(i)].items():
+                if val == "" or val.lower() == "na":
+                    df.at[idx, col] = "NA"
+                else:
+                    try:
+                        df.at[idx, col] = float(val)
+                    except:
+                        df.at[idx, col] = val
+
+        df.to_csv(PAST_DATA_FILE, index=False)
+
+        return jsonify({"success": True})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+        
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

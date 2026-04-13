@@ -223,60 +223,74 @@
         /* ══════════════════════════════════════
            WEEKLY SUMMARY — pixel-match to image
            ══════════════════════════════════════ */
+       
         .weekly-container {
-            max-width: 500px;   /* 🔥 makes table compact */
+            max-width: 650px;
             margin: 0 auto;
         }
 
         .weekly-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 14px;
+            font-weight: 600;
+            background: #2f4a73;
+            color: #ffffff;
         }
 
         .weekly-table td {
-            padding: 4px 6px;
-            border: 1px solid #2d2d2d;
+            padding: 10px;
+            border: 1px solid #3b5a8a;
             text-align: center;
-            font-size: 14px;
         }
 
         .weekly-table td:first-child {
             text-align: left;
-            font-weight: 600;
-            width: 100px;
-        }
-
-        .weekly-table td:not(:first-child) {
-            width: 60px;   /* 🔥 fixed small width for W3–W7 */
+            font-weight: 700;
+            width: 180px;
         }
 
         /* HEADER */
         .weekly-header {
-            background: #6b7280;
-            color: #fff;
-            font-weight: 700;
+            background: #2a6f97;
+            color: #ffffff;
+            font-weight: 800;
+            text-transform: uppercase;
         }
 
-        /* GREEN ROWS */
-        .row-green { background: #2ca58d; color: #fff; font-weight: 900; }
+        /* ROW COLORS */
+        .row-main {
+            background: #324f7a;
+        }
 
-        /* BLUE ROWS */
-        .row-blue { background: #1f6fb2; color: #fff; font-weight: 900; }
+        .row-alt {
+            background: #2f4a73;
+        }
 
-        /* BLACK ROWS */
-        .row-black { background: #000; color: #fff; font-weight: 900; }
+        /* 🔥 TREND ARROWS */
+.trend-up,
+.trend-down,
+.trend-same {
+    font-size: 26px;          /* bigger */
+    font-weight: 900;
+    display: inline-block;
+    transform: scale(1.4);    /* makes it thick */
+    text-shadow: 0 0 6px rgba(0,0,0,0.4);  /* depth */
+}
 
-        /* ORANGE HEADER */
-        .row-orange-header { background: #ff9800; color: #fff; font-weight: 900; }
+/* COLORS */
+.trend-up {
+    color: #22c55e;   /* green */
+}
 
-        /* ORANGE ROWS */
-        .row-orange { background: #ffa726; color: #ffffff;font-weight: 900; }
+.trend-down {
+    color: #ef4444;   /* red */
+}
 
-        /* CYAN SECTION */
-        .row-cyan-header { background: #3aa6a6; color: #fff; font-weight: 900; }
-        .row-cyan { background: #5bc0be; color: #ffffff; font-weight: 900;}
+.trend-same {
+    color: #22c55e;   /* green like your image */
+}
+
 
         /* GAP */
         .row-gap td {
@@ -790,83 +804,160 @@
     // ══════════════════════════════════════════════════════════
     // WEEKLY TABLE — exact replica of the provided screenshot
     // ══════════════════════════════════════════════════════════
+
+function getTrendArrow(prev, curr) {
+    const p = Number(prev);
+    const c = Number(curr);
+
+    if (isNaN(p) || isNaN(c)) {
+        return rightArrow("#22c55e");
+    }
+
+    if (c > p) return upArrow("#22c55e");
+    if (c < p) return downArrow("#ef4444");
+    return rightArrow("#22c55e");
+}
+
+// 🔥 SVG ARROWS (THICK + CLEAN)
+
+function upArrow(color) {
+    return `
+    <svg width="26" height="26" viewBox="0 0 24 24">
+        <path d="M12 19V5M12 5L6 11M12 5L18 11"
+              stroke="${color}"
+              stroke-width="3.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+    </svg>`;
+}
+
+function downArrow(color) {
+    return `
+    <svg width="26" height="26" viewBox="0 0 24 24">
+        <path d="M12 5V19M12 19L6 13M12 19L18 13"
+              stroke="${color}"
+              stroke-width="3.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+    </svg>`;
+}
+
+function rightArrow(color) {
+    return `
+    <svg width="26" height="26" viewBox="0 0 24 24">
+        <path d="M5 12H19M19 12L13 6M19 12L13 18"
+              stroke="${color}"
+              stroke-width="3.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+    </svg>`;
+}
+
 function renderWeeklyTable() {
     const data = dashboardData.past_table || [];
     const container = document.getElementById('weeklyTableContainer');
 
     if (data.length === 0) {
-        container.innerHTML = '<div class="empty-state"><p>No data available</p></div>';
+        container.innerHTML = '<p>No data available</p>';
         return;
     }
 
-    const latest = data.slice(-5);
-    const weeks = latest.map(d => d["Week"] || "");
+    const latest = data.slice(-4); // 🔥 EXACT like screenshot (4 weeks)
+    const weeks = latest.map(d => d["Week"]);
 
-    function val(i, key) {
-        const x = latest[i][key];
+    const columns = [
+        "Tickets Created",
+        "Tickets Resolved",
+        "Major (P1/P2) Incidents",
+        "Ticket Critical",
+        "Ticket Major",
+        "Overall MTTR (hours)",
+        "MTTR Critical",
+        "MTTR Major",
+        "Backlog Ticket Volume",
+        "Backlog Aging (HOURS)"
+    ];
 
-        if (x === undefined || x === null || x === '') return 'NA';
-
-        const num = Number(x);
-
-        return isNaN(num) ? x : Math.floor(num);
-    }
-
-    function row(label, key, cls) {
-        let r = `<tr class="${cls}"><td>${label}</td>`;
-        for (let i = 0; i < weeks.length; i++) {
-            r += `<td>${val(i, key)}</td>`;
-        }
-        return r + '</tr>';
-    }
-
-    function header() {
-        let h = `<tr class="weekly-header"><td></td>`;
-        weeks.forEach(w => h += `<td>${w}</td>`);
-        return h + '</tr>';
-    }
+    const labelMap = {
+        "Tickets Created": "Ticket Opened",
+        "Tickets Resolved": "Ticket Resolved",
+        "Major (P1/P2) Incidents": "Total Incident",
+        "Ticket Critical": "Ticket Critical",
+        "Ticket Major": "Ticket Major",
+        "Overall MTTR (hours)": "MTTR (hrs) Overall",
+        "MTTR Critical": "MTTR Critical (hrs)",
+        "MTTR Major": "MTTR Major (hrs)",
+        "Backlog Ticket Volume": "Backlog (volume)",
+        "Backlog Aging (HOURS)": "Backlog Aging (hrs)"
+    };
 
     let html = `<div class="weekly-container"><table class="weekly-table">`;
 
-    // 🔹 TOP SECTION
-    html += header();
-    html += row('Tickets Created', 'Tickets Created', 'row-green');
-    html += row('Tickets Resolved', 'Tickets Resolved', 'row-green');
+    // 🔹 HEADER
+    html += `<tr class="weekly-header"><td>Metric</td>`;
 
-    html += row('P1 Tickets', 'P1 Tickets', 'row-blue');
-    html += row('P2 Tickets', 'P2 Tickets', 'row-blue');
-    html += row('P3 Tickets', 'P3 Tickets', 'row-blue');
-    html += row('P4 Tickets', 'P4 Tickets', 'row-blue');
+    latest.forEach((row, i) => {
+        const weekLabel = row["Week"] && row["Week"] !== "" 
+            ? row["Week"] 
+            : `W${i+1}`;   // fallback
 
-    html += row('MTTR (hours)', 'MTTR (hours)', 'row-black');
+        html += `<td>${weekLabel}</td>`;
+    });
 
-    html += row('P1 - MTTR', 'P1 - MTTR', 'row-orange');
-    html += row('P2 - MTTR', 'P2 - MTTR', 'row-orange');
-    html += row('P3 - MTTR', 'P3 - MTTR', 'row-orange');
-    html += row('P4 - MTTR', 'P4 - MTTR', 'row-orange');
+    html += `<td>Trend</td></tr>`;
 
-    html += row('Backlog Aging (HOURS)', 'Backlog Aging (HOURS)', 'row-black');
-    html += row('Backlog Ticket Volume', 'Backlog Ticket Volume', 'row-black');
+    // ROWS
+    columns.forEach((col, idx) => {
+        const rowClass = idx % 2 === 0 ? 'row-main' : 'row-alt';
 
-    // GAP
-    html += `<tr class="row-gap"><td colspan="${weeks.length + 1}"></td></tr>`;
+        html += `<tr class="${rowClass}"><td>${labelMap[col]}</td>`;
 
-    // 🔹 BOTTOM SECTION
-    html += header();
-    html += row('Tickets Created', 'Tickets Created', 'row-cyan');
-    html += row('Major (P1/P2) Incidents', 'Major (P1/P2) Incidents', 'row-blue');
-    html += row('Overall MTTR (hours)', 'Overall MTTR (hours)', 'row-cyan');
-    html += row('Backlog Aging (HOURS)', 'Backlog Aging (HOURS)', 'row-blue');
-    html += row('Backlog Ticket Volume', 'Backlog Ticket Volume', 'row-cyan');
+        for (let i = 0; i < weeks.length; i++) {
+            const val = (latest[i][col] === undefined || latest[i][col] === "NA")
+                ? ""
+                : latest[i][col];
 
-    html += `</table></div>`;
+            html += `<td contenteditable="true"
+                        data-row="${i}"
+                        data-col="${col}">${val}</td>`;
+        }
+
+        const prev = latest[latest.length - 2]?.[col];
+        const curr = latest[latest.length - 1]?.[col];
+
+        html += `<td>${getTrendArrow(prev, curr)}</td></tr>`;
+    });
+
+    html += `</table>
+        <div style="margin-top:12px; text-align:right;">
+            <button class="btn-fetch" onclick="saveWeeklyData()">💾 Save</button>
+        </div>
+    </div>`;
 
     container.innerHTML = html;
 }
 
+
+
 let mttrChart, ticketChart, severityChart;
 
 function renderWeeklyCharts() {
+    let html = `
+<div style="
+    background:#2a6f97;
+    color:white;
+    font-weight:800;
+    text-align:center;
+    padding:10px;
+    font-size:16px;
+    letter-spacing:0.5px;
+    border-radius:6px 6px 0 0;
+">
+    SUPPORT METRICES (4-Week Trend)
+</div>
+<div class="weekly-container">
+<table class="weekly-table">
+`;
     const data = dashboardData.past_table || [];
     if (data.length === 0) return;
 
@@ -1027,6 +1118,40 @@ function renderWeeklyCharts() {
         },
         plugins: [ChartDataLabels]
     });
+}
+
+async function saveWeeklyData() {
+    const cells = document.querySelectorAll('[contenteditable="true"]');
+
+    let updates = {};
+
+    cells.forEach(cell => {
+        const row = cell.dataset.row;
+        const col = cell.dataset.col;
+        const value = cell.innerText.trim();
+
+        if (!updates[row]) updates[row] = {};
+        updates[row][col] = value;
+    });
+
+    try {
+        const res = await fetch('/api/save-weekly', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates)
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            alert("Saved successfully!");
+            loadDashboard();
+        } else {
+            alert("Error saving");
+        }
+    } catch (e) {
+        alert("Network error");
+    }
 }
 
 </script>
