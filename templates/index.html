@@ -280,11 +280,12 @@
 
 /* COLORS */
 .trend-up {
-    color: #22c55e;   /* green */
+    /* color: #ef4444;   green */
+    color: #22c55e; 
 }
 
 .trend-down {
-    color: #ef4444;   /* red */
+    color: #22c55e;   /* red */
 }
 
 .trend-same {
@@ -814,7 +815,7 @@ function getTrendArrow(prev, curr) {
     }
 
     if (c > p) return upArrow("#22c55e");
-    if (c < p) return downArrow("#ef4444");
+    if (c < p) return downArrow("#22c55e");
     return rightArrow("#22c55e");
 }
 
