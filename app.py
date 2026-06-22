@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-from fetch_jira import fetch_jira_data
+from fetch_jira_tickets import fetch_jira_data
 import pandas as pd
 import os
 import json
@@ -8,7 +8,7 @@ import math
 app = Flask(__name__)
 
 DATA_FILE = "data/GNOC_Incident_Time.csv"
-PAST_DATA_FILE = "data/past_weekly_data.csv"
+PAST_DATA_FILE = "data/ticket_past_weekly_data.csv"
 
 
 def load_data():

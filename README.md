@@ -43,5 +43,5 @@ Open **http://localhost:5000** in your browser.
 | `app.py` | Flask server + API routes |
 | `fetch_jira.py` | Jira REST API fetcher (importable or standalone CLI) |
 | `templates/index.html` | Single-page dashboard UI |
-| `data/past_weekly_data.csv` | Historical weekly summary (auto-updated) |
+| `data/ticket_past_weekly_data.csv` | Historical weekly summary (auto-updated) |
 | `data/GNOC_Incident_Time.csv` | Current fetch output (auto-generated) |

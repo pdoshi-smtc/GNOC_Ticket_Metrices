@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alerts Dashboard</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f1f5f9;
+      padding: 20px;
+      color: #1e293b;
+    }
+
+    .container {
+      max-width: 100%;
+      overflow-x: auto;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #2563eb;
+      font-size: 28px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    thead {
+      background: #eff6ff;
+    }
+
+    th {
+      color: #2563eb;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 16px;
+      text-align: left;
+      border-bottom: 1px solid #dbeafe;
+    }
+
+    td {
+      padding: 16px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 14px;
+      color: #334155;
+    }
+
+    tr:hover {
+      background: #f8fafc;
+    }
+
+    .priority {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      display: inline-block;
+    }
+
+    .P1 {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .P2 {
+      background: #fef3c7;
+      color: #d97706;
+    }
+
+    .P3 {
+      background: #dcfce7;
+      color: #16a34a;
+    }
+
+    .status-open {
+      color: #dc2626;
+      font-weight: 600;
+    }
+
+    .status-closed {
+      color: #16a34a;
+      font-weight: 600;
+    }
+
+    .tag {
+      background: #e2e8f0;
+      color: #334155;
+      padding: 5px 10px;
+      border-radius: 10px;
+      margin: 2px;
+      display: inline-block;
+      font-size: 12px;
+    }
+
+    @media (max-width: 768px) {
+      th,
+      td {
+        padding: 12px;
+        font-size: 12px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>Alerts Dashboard</h1>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Tiny ID</th>
+          <th>Priority</th>
+          <th>Summary</th>
+          <th>Status</th>
+          <th>Tags</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+
+      <tbody id="alertsTableBody">
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+
+
+    function reloadWithRandomUrl() {
+      const randomNum = Math.floor(Math.random() * 100000);
+
+      window.location.href =
+        window.location.origin +
+        window.location.pathname +
+        "?" + randomNum;
+    }
+
+    async function loadAlerts() {
+      try {
+        const response = await fetch("data/alerts.json");
+        const data = await response.json();
+
+        const alerts = data.alerts || [];
+        const tableBody = document.getElementById("alertsTableBody");
+
+        tableBody.innerHTML = "";
+
+        alerts.forEach(alert => {
+
+          const tinyId = alert.tinyId || "-";
+          const priority = alert.priority || "-";
+          const summary = alert.message || alert.summary || "-";
+          const status = alert.status || "-";
+          const created = alert.createdAt_readable || "-";
+
+          const tags = (alert.tags || [])
+            .map(tag => `<span class="tag">${tag}</span>`)
+            .join(" ");
+
+          const row = `
+            <tr>
+              <td>${tinyId}</td>
+
+              <td>
+                <span class="priority ${priority}">
+                  ${priority}
+                </span>
+              </td>
+
+              <td>${summary}</td>
+
+              <td class="${status.toLowerCase() === 'closed' ? 'status-closed' : 'status-open'}">
+                ${status}
+              </td>
+
+              <td>${tags}</td>
+
+              <td>${created}</td>
+            </tr>
+          `;
+
+          tableBody.innerHTML += row;
+        });
+
+      } catch (error) {
+        console.error("Error loading alerts:", error);
+      }
+    }
+
+  loadAlerts();
+
+  // Auto reload every 30 seconds with random URL
+  setInterval(reloadWithRandomUrl, 30000);
+
+    async function loadAlerts() {
+      try {
+        const response = await fetch("data/alerts.json");
+        const data = await response.json();
+
+        const alerts = data.alerts || [];
+        const tableBody = document.getElementById("alertsTableBody");
+
+        tableBody.innerHTML = "";
+
+        alerts.forEach(alert => {
+
+          const tinyId = alert.tinyId || "-";
+          const priority = alert.priority || "-";
+          const summary = alert.message || alert.summary || "-";
+          const status = alert.status || "-";
+          const created = alert.createdAt_readable || "-";
+
+          const tags = (alert.tags || [])
+            .map(tag => `<span class="tag">${tag}</span>`)
+            .join(" ");
+
+          const responders = (alert.responders || [])
+            .map(r => r.name || r.username || "-")
+            .join(", ");
+
+          const row = `
+            <tr>
+              <td>${tinyId}</td>
+
+              <td>
+                <span class="priority ${priority}">
+                  ${priority}
+                </span>
+              </td>
+
+              <td>${summary}</td>
+
+              <td class="${status.toLowerCase() === 'closed' ? 'status-closed' : 'status-open'}">
+                ${status}
+              </td>
+
+              <td>${tags}</td>
+
+              <td>${created}</td>
+
+            </tr>
+          `;
+
+          tableBody.innerHTML += row;
+        });
+
+      } catch (error) {
+        console.error("Error loading alerts:", error);
+      }
+    }
+
+    loadAlerts();
+  </script>
+
+</body>
+
+</html>
