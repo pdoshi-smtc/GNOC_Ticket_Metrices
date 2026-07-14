@@ -231,7 +231,7 @@ result = result.sort_values(
 
 # Export
 result.to_excel(
-    "data\VPLMN_MVNO_table.xlsx",
+    r"data\VPLMN_MVNO_table.xlsx",
     index=False
 )
 
