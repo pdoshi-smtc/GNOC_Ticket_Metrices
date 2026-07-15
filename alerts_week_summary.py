@@ -183,58 +183,56 @@ weekly_summary.to_csv(
 print("\nSaved week-wise summary to data/alert_weekly_summary.csv")
 
 
-
 # =====================================
 # SAVE VPLMN-MVNO details table
 # ====================================
-
 import pandas as pd
 
 df = pd.read_csv("data/alerts.csv")
 
-# Remove rows without VPLMN
-df = df[df["VPLMN"].notna()]
+# Filter only VPLMN DOWN alerts
+vplmn_df = df[
+    df["Message"].fillna("").str.contains("VPLMN DOWN", case=False, regex=False)
+].copy()
 
-# Clean MVNO column
-df["MVNO"] = (
-    df["MVNO"]
-    .fillna("")
-    .astype(str)
-)
+# Identify alerts with missing VPLMN (no longer printed)
+missing_vplmn = vplmn_df[
+    vplmn_df["VPLMN"].isna() | (vplmn_df["VPLMN"].str.strip() == "")
+].copy()
 
-# Extract numeric part from Duration
-df["Duration"] = (
-    df["Duration"]
-    .astype(str)
+# Keep only rows with VPLMN present
+vplmn_df = vplmn_df[
+    vplmn_df["VPLMN"].notna() & (vplmn_df["VPLMN"].str.strip() != "")
+].copy()
+
+# Clean columns
+vplmn_df["MVNO"] = vplmn_df["MVNO"].fillna("")
+
+vplmn_df["Duration"] = (
+    vplmn_df["Duration"]
     .str.extract(r"(\d+\.?\d*)")[0]
     .astype(float)
 )
 
-# Select required columns
-result = df[
-    [
-        "TinyId",
-        "CreatedAt",
-        "VPLMN",
-        "MVNO",
-        "Duration"
-    ]
-].copy()
-
-# Sort by Duration descending
-result = result.sort_values(
+# Prepare final table (sorted by Duration)
+final_df = vplmn_df[
+    ["TinyId", "CreatedAt", "VPLMN", "Country", "MVNO", "Duration"]
+].sort_values(
     by="Duration",
     ascending=False
 )
 
-# print(result.to_string(index=False))
-
-# Export
-result.to_excel(
-    r"data\VPLMN_MVNO_table.xlsx",
-    index=False
+# Prepare missing_vplmn rows to match the same columns
+# (fill any columns not present in missing_vplmn with blank/NaN)
+missing_export = missing_vplmn.reindex(
+    columns=["TinyId", "CreatedAt", "VPLMN", "Country", "MVNO", "Duration"]
 )
 
-print(
-    "\nSaved VPLMN_MVNO details to data/VPLMN_MVNO_table.xlsx"
+# Append missing_vplmn rows at the very end of the table
+combined_df = pd.concat([final_df, missing_export], ignore_index=True)
+
+# Export
+combined_df.to_excel(
+    "data/VPLMN_MVNO_table.xlsx",
+    index=False
 )

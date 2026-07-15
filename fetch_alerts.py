@@ -48,7 +48,7 @@ end_date = input(
 query = (
     f"createdAt >= {start_date} "
     f"AND createdAt < {end_date} "
-    f"AND (message:(vplmn OR Roaming))"
+    f'AND (message:("VPLMN DOWN" OR "ROAMING PARTNER DOWN"))'
 )
 
 # =========================
@@ -102,6 +102,7 @@ def extract_impact_details(notes):
         "Error Type": "",
         "MVNO": "",
         "VPLMN": "",
+        "Country": "",
         "Customers": "",
         "Device type": "",
         "Impact": ""
@@ -120,6 +121,7 @@ def extract_impact_details(notes):
             "Error Type": r"error\s*type\s*[:\-–—]\s*(.*)",
             "MVNO": r"mvno(?:/s|s)?\s*[:\-]\s*(.*)",
             "VPLMN": r"vplmns?\s*[:\-]\s*(.*)",
+            "Country": r"country\s*[:\-]\s*(.*)",
             "Customers": r"customers?\s*[:\-]\s*(.*)",
             "Device type": r"device\s*type\s*[:\-]\s*(.*)",
             "Impact": r"impact\s*[:\-]\s*(.*)"
@@ -229,6 +231,9 @@ while True:
 
             "VPLMN":
                 impact_data["VPLMN"],
+            
+            "Country":
+                impact_data["Country"],
 
             "Customers":
                 impact_data["Customers"],
@@ -271,6 +276,7 @@ with open(
             "Error Type",
             "MVNO",
             "VPLMN",
+            "Country",
             "Customers",
             "Device type",
             "Impact"
