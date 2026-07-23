@@ -1,5 +1,6 @@
 import requests
 import csv
+import json
 import re
 import os
 from datetime import datetime, UTC
@@ -32,6 +33,25 @@ headers = {
     "Accept": "application/json",
     "Content-Type": "application/json"
 }
+
+# =========================
+# ONE-TIME DEBUG STEP (run once, then delete/disable)
+# =========================
+# This gateway API is internal/undocumented, so before trusting any
+# field name for linked Jira issues, dump one raw alert to see its
+# actual shape. Uncomment, run, inspect the printed JSON, then decide
+# whether linked issues live inside the alert object itself (e.g.
+# under a key like "relatedTickets", "linkedIssues", "integrations")
+# or need a separate per-alert call.
+#
+debug_resp = requests.get(
+    f"{BASE_URL}{ALERTS_ENDPOINT}",
+    headers=headers,
+    params={"limit": 1},
+    auth=auth
+)
+print(json.dumps(debug_resp.json(), indent=2))
+exit()
 
 # =========================
 # USER INPUT
@@ -87,6 +107,69 @@ def fetch_notes(alert_id):
             f"for alert {alert_id}: {e}"
         )
         return []
+
+
+# =========================
+# FETCH LINKED JIRA ISSUES  (NEW)
+# =========================
+# NOTE: endpoint path below is a best guess based on the pattern of
+# the /notes endpoint. If it 404s, run the debug step above first —
+# the linked issue data may already be embedded in the alert object
+# returned by the main /alerts call, under a different key.
+
+def fetch_linked_issues(alert_id):
+
+    url = (
+        f"{BASE_URL}"
+        f"{ALERTS_ENDPOINT}/{alert_id}/linked-issues"
+    )
+
+    try:
+
+        response = requests.get(
+            url,
+            headers=headers,
+            auth=auth
+        )
+
+        if response.status_code != 200:
+            return []
+
+        data = response.json()
+
+        # Adjust this depending on actual response shape once verified
+        return data.get("values", []) or data.get("linkedIssues", [])
+
+    except Exception as e:
+        print(
+            f"Error fetching linked issues "
+            f"for alert {alert_id}: {e}"
+        )
+        return []
+
+
+def extract_linked_issue_urls(linked_issues):
+
+    keys = []
+    urls = []
+
+    for item in linked_issues:
+
+        # Handle a couple of plausible shapes defensively
+        issue = item.get("issue", item)
+
+        key = issue.get("key", "")
+        url = issue.get("url", "")
+
+        if not url and key:
+            url = f"{BASE_URL}/browse/{key}"
+
+        if key:
+            keys.append(key)
+        if url:
+            urls.append(url)
+
+    return ", ".join(keys), ", ".join(urls)
 
 
 # =========================
@@ -187,6 +270,7 @@ while True:
         f"(offset={offset})"
     )
 
+    # Fetch notes AND linked issues concurrently per alert (NEW: linked issues added)
     with ThreadPoolExecutor(max_workers=20) as executor:
 
         notes_results = list(
@@ -199,9 +283,25 @@ while True:
             )
         )
 
+        linked_results = list(
+            executor.map(
+                lambda alert: (
+                    alert["id"],
+                    fetch_linked_issues(alert["id"])
+                ),
+                alerts
+            )
+        )
+
+    # index linked issues by alert id for quick lookup
+    linked_by_id = {aid: issues for aid, issues in linked_results}
+
     for alert, notes in notes_results:
 
         impact_data = extract_impact_details(notes)
+
+        linked_issues = linked_by_id.get(alert["id"], [])
+        linked_keys, linked_urls = extract_linked_issue_urls(linked_issues)
 
         rows.append({
             "TinyId":
@@ -235,7 +335,7 @@ while True:
 
             "VPLMN":
                 impact_data["VPLMN"],
-            
+
             "Country":
                 impact_data["Country"],
 
@@ -257,7 +357,14 @@ while True:
             "CAB":
                 "Yes"
                 if "cab" in impact_data["Action Taken"].lower()
-                else "No"
+                else "No",
+
+            # NEW COLUMNS
+            "Linked Jira Key":
+                linked_keys,
+
+            "Linked Jira URL":
+                linked_urls
         })
 
     if len(alerts) < limit:
@@ -297,7 +404,9 @@ with open(
             "Impact",
             "Action Taken",
             "Impact Description",
-            "CAB"
+            "CAB",
+            "Linked Jira Key",   # NEW
+            "Linked Jira URL"    # NEW
         ]
     )
 
