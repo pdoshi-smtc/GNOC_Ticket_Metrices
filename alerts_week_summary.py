@@ -208,15 +208,15 @@ vplmn_df = vplmn_df[
 # Clean columns
 vplmn_df["MVNO"] = vplmn_df["MVNO"].fillna("")
 
-vplmn_df["Duration"] = (
-    vplmn_df["Duration"]
-    .str.extract(r"(\d+\.?\d*)")[0]
-    .astype(float)
-)
+# vplmn_df["Duration"] = (
+#     vplmn_df["Duration"]
+#     .str.extract(r"(\d+\.?\d*)")[0]
+#     .astype(float)
+# )
 
 # Prepare final table (sorted by Duration)
 final_df = vplmn_df[
-    ["TinyId", "CreatedAt", "VPLMN", "Country", "MVNO", "Duration"]
+    ["TinyId", "CreatedAt", "VPLMN", "Country", "MVNO", "Duration", "Action Taken","Affected Services","Error Type","Message"]
 ].sort_values(
     by="Duration",
     ascending=False
@@ -225,7 +225,7 @@ final_df = vplmn_df[
 # Prepare missing_vplmn rows to match the same columns
 # (fill any columns not present in missing_vplmn with blank/NaN)
 missing_export = missing_vplmn.reindex(
-    columns=["TinyId", "CreatedAt", "VPLMN", "Country", "MVNO", "Duration"]
+    columns=["TinyId", "CreatedAt", "VPLMN", "Country", "MVNO", "Duration", "Action Taken","Affected Services","Error Type","Message"]
 )
 
 # Append missing_vplmn rows at the very end of the table

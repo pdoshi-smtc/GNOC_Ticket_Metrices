@@ -1,1 +1,3 @@
 .env
+data\GNOC_Incident_Time.csv
+data\ticket_past_weekly_data.csv
