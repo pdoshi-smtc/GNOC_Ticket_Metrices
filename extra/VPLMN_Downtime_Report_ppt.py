@@ -22,7 +22,7 @@ Expected input columns (case-sensitive):
 
 Usage:
     python generate_vplmn_ppt.py
-    python generate_vplmn_ppt.py --input data/VPLMN_MVNO_table.xlsx --output output/VPLMN_Outage_Report.pptx --top-n 10
+    python generate_vplmn_ppt.py --input data/VPLMN_MVNO_table.xlsx --output data/VPLMN_Downtime_Report.pptx --top-n 10
 
 Requires: pandas, python-pptx, openpyxl
     pip install pandas python-pptx openpyxl
@@ -46,7 +46,7 @@ from pptx.enum.text import PP_ALIGN
 # Configuration (overridable via command-line flags, see main() below)
 # --------------------------------------------------------------------------
 DEFAULT_INPUT_PATH = "data/VPLMN_MVNO_table.xlsx"
-DEFAULT_OUTPUT_PATH = "output/VPLMN_Outage_Report.pptx"
+DEFAULT_OUTPUT_PATH = "data/VPLMN_Downtime_Report.pptx"
 DEFAULT_TOP_N = 10          # max VPLMNs shown per chart (None = show all)
 CHARTS_PER_ROW = 3          # layout: how many MVNO charts per row on a slide
 

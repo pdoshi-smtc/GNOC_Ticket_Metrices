@@ -505,3 +505,7 @@ print(
     f"\nSuccessfully exported "
     f"{len(rows)} alerts to {csv_file}"
 )
+
+import subprocess
+subprocess.run(["python", "extra/alerts_week_summary.py"], check=True)
+subprocess.run(["python", "extra/VPLMN_Downtime_Report_ppt.py"], check=True)
